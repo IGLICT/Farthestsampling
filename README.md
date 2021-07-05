@@ -30,7 +30,7 @@ If you find this useful for your research, please use the following.
 - [OpenMesh 7.0](https://www.openmesh.org/download/)
 
 
-Note: we test the code on the platform with '''ubuntu 18.04.3, g++ 7.5, gcc 7.5'''.
+Note: we test the code on the platform with `ubuntu 18.04.3, g++ 7.5, gcc 7.5'.
 
 
 ## Installation
