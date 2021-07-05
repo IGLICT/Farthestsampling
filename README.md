@@ -1,5 +1,5 @@
 # Furthest sampling
-Furthest sampling and Voronoi sampling on 3D mesh
+Farthest sampling and Voronoi sampling on 3D mesh
 
 ## Citation
 
