@@ -1,0 +1,78 @@
+cmake_minimum_required(VERSION 2.8)
+project(SAMPLING)
+
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE Release)
+ENDIF()
+
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}")
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/3rd/OpenMesh/cmake")
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  MESSAGE(STATUS "Build type: Debug")
+  SET(CMAKE_CXX_FLAGS "-llapack -lblas -pthread -fopenmp -O0 -Wall -fPIC -std=c++11 ${CMAKE_CXX_FLAGS}")
+ELSE()
+  MESSAGE(STATUS "Build type: Release")
+  SET(CMAKE_CXX_FLAGS "-llapack -lblas -pthread -fopenmp -O3 -Wall -fPIC -std=c++11 ${CMAKE_CXX_FLAGS}")
+ENDIF()
+
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -fopenmp")
+# SET(MPI_CXX_COMPILE_FLAGS "-fopenmp")
+# SET(DEAL_II_CXX_FLAGS "-fopenmp")
+
+#Eigen3
+# FIND_PACKAGE(EIGEN3 REQUIRED)
+find_package(EIGEN3)
+
+#OpenMesh
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/build/OpenMesh-build/install-custom/include)
+FIND_LIBRARY(LIB_OPENMESH OpenMeshCore
+             HINTS ${PROJECT_SOURCE_DIR}/build/OpenMesh-build/install-custom/lib)
+FIND_LIBRARY(LIB_OPENMESH OpenMeshTools
+             HINTS ${PROJECT_SOURCE_DIR}/build/OpenMesh-build/install-custom/lib)
+IF(LIB_OPENMESH-NOTFOUND)
+  MESSAGE(SEND_ERROR "Cannot find OpenMesh!")
+ELSE()
+  MESSAGE(STATUS "Found OpenMesh @ ${LIB_OPENMESH}")
+ENDIF()
+LIST(APPEND ALL_LIBRARIES ${LIB_OPENMESH})
+
+
+# set(OpenMeshTools_LIBRARIES1 "${PROJECT_SOURCE_DIR}/build/OpenMesh-build/install-custom/lib/libOpenMeshTools.so")
+# LIST(APPEND ALL_LIBRARIES ${OpenMeshTools_LIBRARIES1})
+
+# Openmesh 7.1 eigen3
+
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/3rd)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
+
+MACRO(SEARCH_SOURCE NAME DIRPRJ)
+  FILE(GLOB_RECURSE header${NAME} "${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.h" "${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.hpp" "${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.hh")
+  FILE(GLOB_RECURSE source${NAME} "${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.cpp" "${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.cc" "${PROJECT_SOURCE_DIR}/${DIRPRJ}/*.c")
+ENDMACRO(SEARCH_SOURCE)
+SEARCH_SOURCE(SAMPLING src)
+
+add_definitions(
+      -D_USE_MATH_DEFINES -DNOMINMAX -DDUSE_OPENMP -D_SCL_SECURE_NO_DEPRECATE
+  )
+
+#BUILD
+ADD_LIBRARY(SAMPLING SHARED ${sourceSAMPLING} ${headerSAMPLING})
+TARGET_LINK_LIBRARIES(SAMPLING ${ALL_LIBRARIES})
+MACRO(ADD_EXE NAME)
+  ADD_EXECUTABLE(${NAME} ./src/${NAME}.cpp)
+  TARGET_LINK_LIBRARIES(${NAME} SAMPLING gomp ${ALL_STATIC_LIBRARIES})
+ENDMACRO(ADD_EXE)
+# target_link_libraries(SAMPLING PRIVATE "${OpenMP_CXX_FLAGS}")
+# target_compile_options(SAMPLING PRIVATE "${OpenMP_CXX_FLAGS}")
+# set_target_properties(SAMPLING PROPERTIES
+# COMPILE_FLAGS "-pthread"
+# LINK_FLAGS "-pthread")
+#DEBUG
+ADD_EXE(main)
+
+
+
+
+
+

@@ -1,11 +1,12 @@
 #include <string>
-#include <direct.h>
+// #include <direct.h>
 //#include <afx.h>
 
 #include "graph.h"
 #include "Align.h"
 #include <random>
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 #define DEBUG
