@@ -12,7 +12,7 @@ using namespace std;
 #define DEBUG
 //#undef DEBUG
 
-class FeatureSampling
+class FarthestSampling
 {
 public:
 	//
@@ -24,6 +24,7 @@ public:
 	int numbersamplings;
 
 	vector<Eigen::Vector3d> samplingpoints;
+	vector<Eigen::Vector3d> samplingpoints_normal;
 	vector<vector<int>> neighbourindex;
 	//construction methods
 	FeatureSampling() :neighbourradius(0.0) {}
@@ -46,7 +47,7 @@ double calcarea(std::vector<Eigen::Vector3d> & tranglev)
 	return 0.5*(edge1.cross(edge2)).norm();
 }
 
-FeatureSampling::FeatureSampling(int _neighbourradius, DTriMesh* _hemesh, int NumberSamplings/* = 500*/)
+FarthestSampling::FarthestSampling(int _neighbourradius, DTriMesh* _hemesh, int NumberSamplings/* = 500*/)
 {
 	neighbourradius = _neighbourradius;
 	numbersamplings = NumberSamplings;
@@ -59,7 +60,7 @@ FeatureSampling::FeatureSampling(int _neighbourradius, DTriMesh* _hemesh, int Nu
 	this->hemesh = _hemesh;
 }
 
-bool FeatureSampling::Sampling()
+bool FarthestSampling::Sampling()
 {
 	if (hemesh == NULL)
 	{
@@ -73,7 +74,10 @@ bool FeatureSampling::Sampling()
 	//initialize
 	memset(facearea, 0, hemesh->n_faces() * sizeof(double));
 	//
-
+	hemesh->request_vertex_normals();
+	hemesh->request_face_normals();
+	//myTriMesh.update_vertex_normals();
+	hemesh->update_normals();
 
 	for (int i = 0; i < hemesh->n_faces(); i++)
 	{
@@ -106,6 +110,7 @@ bool FeatureSampling::Sampling()
 	// Choose a random mean between 1 and 6
 	std::default_random_engine e1(r());
 	std::uniform_int_distribution<int> uniform_dist(0, RAND_MAX);
+	std::vector<int> facetravel;
 	for (int i = 0; i < numbersamplings; i++)
 	{
 		
@@ -141,6 +146,7 @@ bool FeatureSampling::Sampling()
 		para[2] = (sqrt(r1))*(r2);
 		Eigen::Vector3d P1(0.0, 0.0, 0.0);
 		DTriMesh::FaceHandle fhh(leftind);
+		facetravel.push_back(leftind);
 		//for (int k = 0; k<3;k++)
 		//{
 		int ii = 0;
@@ -152,11 +158,12 @@ bool FeatureSampling::Sampling()
 		//}
 		//Vector3D P(P1[0], P1[1], P1[2]);
 		samplingpoints.push_back(P1.transpose());
+		std::cout << leftind << std::endl;
+		samplingpoints_normal.push_back(OtoE(hemesh->calc_face_normal(fhh)).transpose());
 	}
 	delete[] facearea;
 	return true;
 }
-
 
 void VoronoiSamplingyj(std::string orimesh, std::string voronoipointfile, int samplingsize, int seedid)
 {
@@ -192,10 +199,11 @@ void VoronoiSamplingyj(std::string orimesh, std::string voronoipointfile, int sa
 }
 
 
-void otherSamplingyj(std::string orimesh, std::string voronoipointfile, int samplingsize)
+void furthestSamplingyj(std::string orimesh, std::string voronoipointfile, int samplingsize)
 {
 	//std::string orimesh = "F:\\yangjiee\\yangjie\\tracking\\paper\\22.obj";
 	DTriMesh Meshori;
+	omerr().disable();
 	//int samplingsize = 50;
 	//vector<int> samplingpoints;
 	vector<int> candidatepoints;
@@ -226,52 +234,13 @@ void otherSamplingyj(std::string orimesh, std::string voronoipointfile, int samp
 
 int main(int argc, char *argv[])
 {
-	//char * input = argv[1];
-	//char * output = argv[2];
-	//char * pointsize = argv[3];
+	char * input = argv[1];
+	char * output = argv[2];
+	char * pointsize = argv[3];
 	//char * seed = argv[4];
 
-	//
-	//otherSamplingyj(string(input), string(output), atoi(pointsize));
-	//string mesh = "F:\\yangjiee\\yangjie\\tracking\\paper\\2.obj";
-	//std::vector<LAs_> las;
-	//LAs(mesh, las);
-	//calc_las(argv[1]);
-	//subdivede(string(input), string(output));
-	//std::string inputfile =string(argv[1]);
-	//std::string outputfile =string(argv[2]);
-	//deleteface(inputfile,outputfile);
-
-	//std::string a=string(argv[1]);
-	//std::string b=string(argv[2]);
-	//std::string c=string(argv[4]);
-	//mkdir(c.c_str());
-	//genmodel(a,b,atoi(argv[3]),c);
-
-	//Smoother_1();
-	//Smoother_2();
-	//Smoother_3();
-	//resettime();
-	//char * inputfolder = "Y:\\yangjie17\\sig18\\testtvcg\\1";
-
-
+	furthestSamplingyj(string(input), string(output), atoi(pointsize));
 	//VoronoiSamplingyj(string(input),string(output),atoi(pointsize),atoi(seed));
-
-	//char * inputfolder = argv[1];
-	//PreprocessObj2Mat(std::string(inputfolder));
-
-	char * inputfolder = argv[1];
-	char * outputfolder = argv[2];
-
-	//testmodele_difference();
-
-	//std::string path = "F:\\yangjiee\\sig17\\model_analysis\\people1";
-	//std::string pathout = "F:\\yangjiee\\sig17\\model_analysis\\peoplem";
-	//yj_checkmesh(path, pathout);
-	//char * inifile = "F:\\yangjiee\\sig17\\asia\\sig170523\\testc3c5\\deform\\0.ini";
-	//char * inifile = argv[1];
-	//arapdeformm_inter(inifile);
-	//arapdeformm_(inifile);
 	//system("pause");
 	return 0;
 }
